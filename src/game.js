@@ -1,58 +1,62 @@
 "use strict;"
 
-export class Game {
+var oldTime;
+var paused;
+var render;
+var update;
 
-  /**
-   * @constructor Game
-   * Creates a new game object
-   * @param {canvasDOMElement} screen canvas object to draw into
-   * @param {function} updateFunction function to update the game
-   * @param {function} renderFunction function to render the game
-   */
-  constructor(screen, updateFunction, renderFunction) {
-    this.update = updateFunction;
-    this.render = renderFunction;
+var backBuffer, backCtx, frontBuffer, frontCtx;
 
-    // Set up buffers
-    this.frontBuffer = screen;
-    this.frontCtx = screen.getContext('2d');
-    this.backBuffer = document.createElement('canvas');
-    this.backBuffer.width = screen.width;
-    this.backBuffer.height = screen.height;
-    this.backCtx = this.backBuffer.getContext('2d');
+/**
+ * @constructor Game
+ * Creates a new game object
+ * @param {canvasDOMElement} screen canvas object to draw into
+ * @param {function} updateFunction function to update the game
+ * @param {function} renderFunction function to render the game
+ */
+export function init(screen, updateFunction, renderFunction) {
+  update = updateFunction;
+  render = renderFunction;
 
-    // Start the game loop
-    this.oldTime = performance.now();
-    this.paused = false;
-    window.requestAnimationFrame(this.loop);
-  }
+  // Set up buffers
+  frontBuffer = screen;
+  frontCtx = screen.getContext('2d');
+  backBuffer = document.createElement('canvas');
+  backBuffer.width = screen.width;
+  backBuffer.height = screen.height;
+  backCtx = backBuffer.getContext('2d');
 
-  /**
-   * @function pause
-   * Pause or unpause the game
-   * @param {bool} pause true to pause, false to start
-   */
-  pause(flag) {
-    this.paused = (flag == true);
-  }
-
-  /**
-   * @function loop
-   * The main game loop.
-   * @param{time} the current time as a DOMHighResTimeStamp
-   */
-  loop(newTime) {
-    var elapsedTime = newTime - this.oldTime;
-    this.oldTime = newTime;
-
-    if(!this.paused) this.update(elapsedTime);
-    this.render(elapsedTime, this.frontCtx);
-
-    // Flip the back buffer
-    frontCtx.drawImage(backBuffer, 0, 0);
-
-    // Run the next loop
-    window.requestAnimationFrame(this.loop);
-  }
-
+  // Start the game loop
+  oldTime = performance.now();
+  paused = false;
+  window.requestAnimationFrame(loop);
 }
+
+/**
+ * @function pause
+ * Pause or unpause the game
+ * @param {bool} pause true to pause, false to start
+ */
+export function pause(flag) {
+  paused = (flag == true);
+}
+
+/**
+ * @function loop
+ * The main game loop.
+ * @param{time} the current time as a DOMHighResTimeStamp
+ */
+loop(newTime) {
+  var elapsedTime = newTime - oldTime;
+  oldTime = newTime;
+
+  if(!paused) update(elapsedTime);
+  render(elapsedTime, frontCtx);
+
+  // Flip the back buffer
+  frontCtx.drawImage(backBuffer, 0, 0);
+
+  // Run the next loop
+  window.requestAnimationFrame(loop);
+}
+
